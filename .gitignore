@@ -1,0 +1,21 @@
+﻿# Python
+.venv/
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+
+# Data and models (too big for Git)
+data/raw/
+data/processed/
+models/*.h5
+models/*.tflite
+models/*.keras
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Jupyter
+*.ipynb_checkpoints
