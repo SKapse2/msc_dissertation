@@ -1,0 +1,46 @@
+import json
+
+tier1_artefact = {
+    "models": {
+        "reference_keras":   "models/autoencoder_v1.keras",
+        "reference_tflite":  "models/autoencoder_v1_float.tflite",
+        "deployed_tflite":   "models/autoencoder_v1_int8_v2.tflite",
+    },
+    "window_size": pp.WINDOW_SIZE,
+    "preprocessing": {
+        "scaler_mean": float(scaler.mean),
+        "scaler_std": float(scaler.std),
+        "training_period": [str(pp.DEFAULT_SPLIT.train_start), str(pp.DEFAULT_SPLIT.train_end)],
+        "anomaly_windows_excluded_from_training": True,
+        "target_file": TARGET_FILE,
+    },
+    "thresholds": {
+        "keras":  float(md.THRESHOLD),     # 0.00879
+        "int8":   float(threshold_int8),   # 0.00972 — the deployed threshold
+    },
+    "input_quantisation": {
+        "scale": float(interp_int8_v2.get_input_details()[0]['quantization'][0]),
+        "zero_point": int(interp_int8_v2.get_input_details()[0]['quantization'][1]),
+        "representable_range": [
+            float((-128 - interp_int8_v2.get_input_details()[0]['quantization'][1]) *
+                  interp_int8_v2.get_input_details()[0]['quantization'][0]),
+            float((127 - interp_int8_v2.get_input_details()[0]['quantization'][1]) *
+                  interp_int8_v2.get_input_details()[0]['quantization'][0]),
+        ],
+    },
+    "output_quantisation": {
+        "scale": float(interp_int8_v2.get_output_details()[0]['quantization'][0]),
+        "zero_point": int(interp_int8_v2.get_output_details()[0]['quantization'][1]),
+    },
+    "evaluation": {
+        "metric": "event-level F1",
+        "test_period": [str(pp.DEFAULT_SPLIT.test_start), str(pp.DEFAULT_SPLIT.test_end)],
+        "keras":  {"precision": 0.25, "recall": 1.0, "f1": 0.40, "fp_events": 6, "fn_events": 0},
+        "int8":   {"precision": 0.20, "recall": 1.0, "f1": 0.333, "fp_events": 8, "fn_events": 0},
+    },
+}
+
+artefact_path = PROJECT_ROOT / "models" / "tier1_artefact.json"
+with open(artefact_path, "w") as f:
+    json.dump(tier1_artefact, f, indent=2)
+print(f"Saved Tier 1 artefact bundle to {artefact_path}")

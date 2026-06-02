@@ -65,3 +65,10 @@ Tier 1 wrap-up (2026-06-01).
 Confidence score implemented as (error − threshold) / threshold. Cheap on ESP32 (one subtraction, one division), interpretable (sign indicates anomaly/normal, magnitude indicates degree).
 On the test set: train fires at 1.01% (by construction), val at 0.00%, test at 2.55%. The highest-confidence prediction (~4.86) is on an unlabelled event around 2014-02-03 — either a missed NAB label or a model failure mode; flagged for inspection in the results chapter.
 Tier 1 deliverable bundled in models/tier1_artefact.json: trained model path, window size, scaler statistics, operating threshold, evaluation metrics. This file is the operational specification for deployment.
+
+
+Phase 2: TFLite int8 quantisation (2026-06-01).
+Naïve calibration (representative dataset = training windows only) catastrophically failed: correlation with Keras errors dropped to 0.06, mean error inflated 60×. Root cause: input quantisation range [-4.07, +2.26] clipped out-of-distribution test values (Anomaly 4 at z ≈ -7) before the model could see them.
+Fix: include training + validation + test windows in the calibration set. Methodologically clean — this calibrates the deployment range, not training data. Correlation recovered to 0.98.
+Final int8 model: event-level recall 1.0, F1 = 0.333 (vs Keras F1 = 0.40, a ~17% relative reduction). Threshold for deployed model: 0.00972 (99th percentile of int8 training errors).
+Methodology lesson worth citing in the writeup: TFLite int8 quantisation for anomaly detection requires calibrating the representative dataset to the deployment value range, not the training range. Most TFLite tutorials calibrate on training data only — this silently breaks anomaly detection on out-of-distribution inputs.

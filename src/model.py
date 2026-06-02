@@ -107,3 +107,33 @@ def confidence_score(
     Designed for cheap ESP32 inference: one subtraction, one division.
     """
     return (error - threshold) / threshold
+
+
+def predict_tflite(interpreter, X: "np.ndarray") -> "np.ndarray":
+    """Run inference through a TFLite model on a batch of windows.
+
+    Handles input/output quantisation automatically. TFLite's Python
+    interpreter doesn't batch nicely, so we iterate window-by-window.
+    """
+    import numpy as np
+    input_details = interpreter.get_input_details()[0]
+    output_details = interpreter.get_output_details()[0]
+
+    # Quantise input if model expects int8
+    if input_details['dtype'] == np.int8:
+        scale, zero_point = input_details['quantization']
+        X_in = np.clip(np.round(X / scale + zero_point), -128, 127).astype(np.int8)
+    else:
+        X_in = X.astype(input_details['dtype'])
+
+    outputs = np.empty((len(X), X.shape[1], X.shape[2]), dtype=np.float32)
+    for i in range(len(X_in)):
+        interpreter.set_tensor(input_details['index'], X_in[i:i+1])
+        interpreter.invoke()
+        raw = interpreter.get_tensor(output_details['index'])
+        if output_details['dtype'] == np.int8:
+            scale, zero_point = output_details['quantization']
+            raw = (raw.astype(np.float32) - zero_point) * scale
+        outputs[i] = raw[0]
+
+    return outputs
