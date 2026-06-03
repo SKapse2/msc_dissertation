@@ -1,0 +1,2 @@
+source D:/dissertation/firmware/tier1_inference/build/gdbinit/symbols
+source D:/dissertation/firmware/tier1_inference/build/gdbinit/connect

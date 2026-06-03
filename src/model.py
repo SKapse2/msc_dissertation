@@ -21,17 +21,11 @@ def build_autoencoder(
 ) -> keras.Model:
     """Build a symmetric Conv1D autoencoder.
 
-    Args:
-        window_size: number of timesteps per input window.
-        n_channels: number of input channels (1 for univariate).
-        filters: filter counts for encoder Conv1D layers. The decoder
-            mirrors these in reverse. Each Conv1D is followed by a
-            2x pooling layer, so window_size must be divisible by
-            2 ** len(filters).
-        kernel_size: kernel width for all Conv1D layers.
-
-    Returns:
-        A compiled-ready keras.Model.
+    Decoder uses Conv1DTranspose for upsampling rather than UpSampling1D +
+    Conv1D. Same parameter count, near-identical expressive power, but
+    compiles to a single TRANSPOSE_CONV op in TFLite rather than the
+    TILE + RESHAPE + CONV_2D pattern. TRANSPOSE_CONV is supported by
+    Espressif's TFLite Micro port; TILE is not.
     """
     if window_size % (2 ** len(filters)) != 0:
         raise ValueError(
@@ -41,20 +35,24 @@ def build_autoencoder(
 
     inputs = keras.Input(shape=(window_size, n_channels), name="window")
 
-    # --- Encoder ---
+    # --- Encoder (unchanged) ---
     x = inputs
     for f in filters:
         x = layers.Conv1D(f, kernel_size, padding="same", activation="relu")(x)
         x = layers.MaxPooling1D(2, padding="same")(x)
 
-    # --- Decoder (mirror) ---
+    # --- Decoder using Conv1DTranspose ---
+    # Each Conv1DTranspose with strides=2 doubles the time dimension
+    # AND applies a learnable convolution in one step.
     for f in reversed(filters):
-        x = layers.Conv1D(f, kernel_size, padding="same", activation="relu")(x)
-        x = layers.UpSampling1D(2)(x)
+        x = layers.Conv1DTranspose(
+            f, kernel_size, strides=2, padding="same", activation="relu"
+        )(x)
 
-    # --- Output layer: reconstruct original signal ---
+    # --- Output layer ---
     outputs = layers.Conv1D(
-        n_channels, kernel_size, padding="same", activation="linear", name="reconstruction"
+        n_channels, kernel_size, padding="same", activation="linear",
+        name="reconstruction",
     )(x)
 
     model = keras.Model(inputs, outputs, name="conv1d_autoencoder")

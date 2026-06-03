@@ -1,0 +1,19 @@
+Command: ninja all
+[1/10] Performing build step for 'bootloader'
+[1/1] C:\WINDOWS\system32\cmd.exe /C "cd /D D:\dissertation\firmware\tier1_inference\build\bootloader\esp-idf\esptool_py && C:\Users\Hp\.espressif\python_env\idf5.5_py3.10_env\Scripts\python.exe C:/esp/v5.5.4/esp-idf/components/partition_table/check_sizes.py --offset 0x8000 bootloader 0x0 D:/dissertation/firmware/tier1_inference/build/bootloader/bootloader.bin"
+Bootloader binary size 0x57c0 bytes. 0x2840 bytes (31%) free.
+[2/10] No install step for 'bootloader'
+[3/10] Completed 'bootloader'
+[4/10] Building CXX object esp-idf/main/CMakeFiles/__idf_main.dir/tier1_inference.cpp.obj
+[5/10] Linking C static library esp-idf\main\libmain.a
+[6/10] Generating esp-idf/esp_system/ld/sections.ld
+[7/10] Building C object CMakeFiles/tier1_inference.elf.dir/project_elf_src_esp32c6.c.obj
+[8/10] Linking CXX executable tier1_inference.elf
+[9/10] Generating binary image from built executable
+esptool.py v4.12.dev2
+Creating esp32c6 image...
+Merged 1 ELF section
+Successfully created esp32c6 image.
+Generated D:/dissertation/firmware/tier1_inference/build/tier1_inference.bin
+[10/10] C:\WINDOWS\system32\cmd.exe /C "cd /D D:\dissertation\firmware\tier1_inference\build\esp-idf\esptool_py && C:\Users\Hp\.espressif\python_env\idf5.5_py3.10_env\Scripts\python.exe C:/esp/v5.5.4/esp-idf/components/partition_table/check_sizes.py --offset 0x8000 partition --type app D:/dissertation/firmware/tier1_inference/build/partition_table/partition-table.bin D:/dissertation/firmware/tier1_inference/build/tier1_inference.bin"
+tier1_inference.bin binary size 0x468a0 bytes. Smallest app partition is 0x100000 bytes. 0xb9760 bytes (72%) free.

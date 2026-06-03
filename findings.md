@@ -72,3 +72,15 @@ Naïve calibration (representative dataset = training windows only) catastrophic
 Fix: include training + validation + test windows in the calibration set. Methodologically clean — this calibrates the deployment range, not training data. Correlation recovered to 0.98.
 Final int8 model: event-level recall 1.0, F1 = 0.333 (vs Keras F1 = 0.40, a ~17% relative reduction). Threshold for deployed model: 0.00972 (99th percentile of int8 training errors).
 Methodology lesson worth citing in the writeup: TFLite int8 quantisation for anomaly detection requires calibrating the representative dataset to the deployment value range, not the training range. Most TFLite tutorials calibrate on training data only — this silently breaks anomaly detection on out-of-distribution inputs.
+
+
+Phase 2: TFLite int8 quantisation (2026-06-01).
+Naïve calibration (representative dataset = training windows only) catastrophically failed: correlation with Keras errors dropped to 0.06, mean error inflated 60×. Root cause: input quantisation range [-4.07, +2.26] clipped out-of-distribution test values (Anomaly 4 at z ≈ -7) before the model could see them.
+Fix: include training + validation + test windows in the calibration set. This calibrates the deployment range, not training data — methodologically defensible. Correlation recovered to 0.98.
+Final int8 model: event-level recall 1.0, F1 = 0.333. Vs Keras float F1 = 0.40 — about 17% relative F1 reduction, driven by 2 extra false alarms at the operating threshold. Recall preserved.
+Worth citing in the writeup as a methodology lesson: TFLite int8 quantisation for anomaly detection requires the representative dataset to span the deployment value range, not just the training range. Most tutorials get this wrong silently.
+
+
+Phase 3: ESP32 deployment (2026-06-01). TFLite Micro inference running on ESP32-C6 via Espressif's esp-tflite-micro component. End-to-end integration test: hard-coded test window from Python, run through the on-device interpreter, output bytes compared to Python's TFLite reference.
+Results: 57/60 output bytes match exactly; remaining 3 differ by at most 2 units (cross-platform rounding in int8 quantisation). Inference latency: 19.36 ms. Tensor arena usage: 8,684 bytes. Model footprint: 14,616 bytes. Total firmware binary: 289 KB.
+Architectural detour worth noting: Espressif's TFLite Micro port does not expose the TILE operator. The original UpSampling1D-based decoder produced TILE in the TFLite graph and could not be loaded. Re-architecting the decoder with Conv1DTranspose (which compiles to TRANSPOSE_CONV — supported) resolved the issue with no measurable accuracy loss. This is dissertation-relevant: deployment constraints surfaced a model design choice that should have been informed by the target hardware from the start.
