@@ -1,0 +1,11 @@
+Command: C:\Users\Hp\.espressif\python_env\idf5.5_py3.10_env\Scripts\python.exe C:\esp\v5.5.4\esp-idf\tools/idf_monitor.py -p COM3 -b 115200 --toolchain-prefix riscv32-esp-elf- --target esp32c6 --revision 0 --decode-panic backtrace D:\dissertation\firmware\tier1_inference\build\tier1_inference.elf D:\dissertation\firmware\tier1_inference\build\bootloader\bootloader.elf --force-color -m 'C:\Users\Hp\.espressif\python_env\idf5.5_py3.10_env\Scripts\python.exe' 'C:\esp\v5.5.4\esp-idf\tools\idf.py' '-p' 'COM3'
+[0;33m--- Warning: GDB cannot open serial ports accessed as COMx[0m
+[0;33m--- Using \\.\COM3 instead...[0m
+[0;33m--- esp-idf-monitor 1.9.0 on \\.\COM3 115200[0m
+[0;33m--- Quit: Ctrl+] | Menu: Ctrl+T | Help: Ctrl+T followed by Ctrl+H[0m
+[0m--- 0x40802d8e: [0;33mrv_utils_wait_for_intr[0m[0m at [0;32mC:/esp/v5.5.4/esp-idf/components/riscv/include/riscv/rv_utils.h[0m[0m:[1;31m79[0m
+[0m--- (inlined by) [0;33mesp_cpu_wait_for_intr[0m[0m at [0;32mC:/esp/v5.5.4/esp-idf/components/esp_hw_support/cpu.c[0m[0m:[1;31m62[0m
+[0m--- 0x4086b910: [0;33mesp_bootloader_get_description[0m[0m at [0;32mC:/esp/v5.5.4/esp-idf/components/esp_bootloader_format/esp_bootloader_desc.c[0m[0m:[1;31m39[0m
+[0m--- 0x4086e610: [0;33mesp_flash_encryption_enabled[0m[0m at [0;32mC:/esp/v5.5.4/esp-idf/components/bootloader_support/src/flash_encrypt.c[0m[0m:[1;31m89[0m
+[0m--- 0x4086b91a: [0;33mcall_start_cpu0[0m[0m at [0;32mC:/esp/v5.5.4/esp-idf/components/bootloader/subproject/main/bootloader_start.c[0m[0m:[1;31m27[0m
+[0m

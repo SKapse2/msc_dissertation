@@ -111,5 +111,28 @@ extern "C" void app_main(void)
     for (int i = 0; i < 12; i++) printf("%4d ", (int)kExpectedOutput[i]);
     printf("...\n");
 
+    // --- Compute reconstruction MSE in float space ---
+// Dequantise both input and output, then compute MSE.
+float in_scale  = input->params.scale;
+int   in_zp     = input->params.zero_point;
+float out_scale = output->params.scale;
+int   out_zp    = output->params.zero_point;
+
+float sum_sq = 0.0f;
+for (int i = 0; i < 60; i++) {
+    float in_dq  = ((int)kTestInput[i]            - in_zp)  * in_scale;
+    float out_dq = ((int)output->data.int8[i]     - out_zp) * out_scale;
+    float diff = in_dq - out_dq;
+    sum_sq += diff * diff;
+}
+float mse = sum_sq / 60.0f;
+
+// --- Compute confidence score: (mse - threshold) / threshold ---
+float confidence = (mse - kThresholdInt8) / kThresholdInt8;
+
+ESP_LOGI(TAG, "MSE:        %.5f  (expected %.5f)", mse, kExpectedReconstructionMSE);
+ESP_LOGI(TAG, "Confidence: %.3f  (expected %.3f)", confidence, kExpectedConfidence);
+ESP_LOGI(TAG, "Decision:   %s", confidence > 0.0f ? "ANOMALY (escalate to Tier 2)" : "NORMAL");
+
     ESP_LOGI(TAG, "Done");
 }
