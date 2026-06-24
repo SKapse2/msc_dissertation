@@ -1,7 +1,7 @@
 {
     "version":            "1.2",
     "project_name":       "tier1_inference",
-    "project_version":    "fb7d34c-dirty",
+    "project_version":    "62f4fe8-dirty",
     "project_path":       "D:/dissertation/firmware/tier1_inference",
     "idf_path":           "C:/esp/v5.5.4/esp-idf",
     "build_dir":          "D:/dissertation/firmware/tier1_inference/build",

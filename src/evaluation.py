@@ -38,13 +38,19 @@ def detect_events(
     threshold: float,
     timestamps: np.ndarray,
     window_size: int,
-    merge_gap_minutes: int = 30,
+    merge_gap_minutes: int = 300,
 ) -> list:
     """Group consecutive flagged windows into discrete detection events.
 
     Detections within merge_gap_minutes of each other are merged into
     one event, so a single anomaly producing several adjacent
     above-threshold windows counts as one event.
+
+    Default merge gap is 300 minutes = one window length at 5-minute
+    sampling. Below that, brief sub-threshold dips fragment a single
+    long anomaly into several events and inflate the false-alarm count;
+    above that, genuinely distinct nearby anomalies would be collapsed.
+    Override per-stream when sampling rate or window size differs.
     """
     flagged = err > threshold
     end_indices = np.arange(window_size - 1, window_size - 1 + len(err))

@@ -83,9 +83,30 @@ def reconstruction_error(
     return np.mean(np.square(X - reconstructed), axis=(1, 2))
 
 
-THRESHOLD = 0.00879  # 99th percentile of training reconstruction error on
-                    # machine_temperature_system_failure.csv. See findings.md for
-                    # derivation. Re-derive per-stream when applied to other data.
+# Operating thresholds — 99th percentile of training reconstruction error
+# on the canonical model trained against
+# realKnownCause/machine_temperature_system_failure.csv.
+#
+# These are snapshots: re-derive with `compute_threshold` whenever the model
+# is retrained, and update both constants together with the firmware copy
+# (firmware/tier1_inference/main/test_reference.h :: kThresholdInt8) which
+# is the truly authoritative value — it's what actually runs on the ESP32.
+THRESHOLD      = 0.00468   # Keras float reference model
+THRESHOLD_INT8 = 0.00598   # Deployed int8 TFLite model (matches firmware)
+
+
+def compute_threshold(
+    err_train: "np.ndarray", quantile: float = 0.99
+) -> float:
+    """Derive the operating threshold from training reconstruction errors.
+
+    The default 99th percentile is the convention used throughout the
+    project: it lets ~1% of training windows fire (an expected false-alarm
+    rate consistent with a recall-first Tier 1) while keeping the threshold
+    well above the typical noise floor.
+    """
+    import numpy as np
+    return float(np.quantile(err_train, quantile))
 
 
 def confidence_score(

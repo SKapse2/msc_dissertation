@@ -1,46 +1,85 @@
-import json
-
-tier1_artefact = {
-    "models": {
-        "reference_keras":   "models/autoencoder_v1.keras",
-        "reference_tflite":  "models/autoencoder_v1_float.tflite",
-        "deployed_tflite":   "models/autoencoder_v1_int8_v2.tflite",
+{
+  "schema_version": 2,
+  "generated_by": "scripts/build_tier1_artefact.py",
+  "models": {
+    "reference_keras": "models/autoencoder_v1.keras",
+    "reference_tflite": "models/autoencoder_v1_float.tflite",
+    "deployed_tflite": "models/autoencoder_v1_int8_v2.tflite"
+  },
+  "window_size": 60,
+  "sampling_interval_minutes": 5,
+  "preprocessing": {
+    "scaler_mean": 88.11352839041764,
+    "scaler_std": 9.041612230106441,
+    "training_period": [
+      "2013-12-02 00:00:00",
+      "2014-01-25 00:00:00"
+    ],
+    "test_period": [
+      "2014-01-27 00:00:00",
+      "2014-02-19 23:59:59"
+    ],
+    "anomaly_windows_excluded_from_training": true,
+    "target_file": "realKnownCause/machine_temperature_system_failure.csv"
+  },
+  "thresholds": {
+    "keras": 0.004681032525711201,
+    "int8": 0.00598136878959191,
+    "basis": "99th percentile of training reconstruction error",
+    "firmware_copy": "firmware/tier1_inference/main/test_reference.h :: kThresholdInt8"
+  },
+  "input_quantisation": {
+    "scale": 0.03583552688360214,
+    "zero_point": 64,
+    "representable_range_z": [
+      -6.880421161651611,
+      2.257638193666935
+    ]
+  },
+  "output_quantisation": {
+    "scale": 0.03559386730194092,
+    "zero_point": 64
+  },
+  "evaluation": {
+    "metric": "event-level F1",
+    "merge_gap_minutes": 300,
+    "merge_gap_basis": "one window length at 5-minute sampling",
+    "keras_vs_nab_labels": {
+      "tp_events": 2,
+      "fp_events": 4,
+      "fn_events": 0,
+      "precision": 0.3333,
+      "recall": 1.0,
+      "f1": 0.5
     },
-    "window_size": pp.WINDOW_SIZE,
-    "preprocessing": {
-        "scaler_mean": float(scaler.mean),
-        "scaler_std": float(scaler.std),
-        "training_period": [str(pp.DEFAULT_SPLIT.train_start), str(pp.DEFAULT_SPLIT.train_end)],
-        "anomaly_windows_excluded_from_training": True,
-        "target_file": TARGET_FILE,
+    "int8_vs_nab_labels": {
+      "tp_events": 2,
+      "fp_events": 6,
+      "fn_events": 0,
+      "precision": 0.25,
+      "recall": 1.0,
+      "f1": 0.4
     },
-    "thresholds": {
-        "keras":  float(md.THRESHOLD),     # 0.00879
-        "int8":   float(threshold_int8),   # 0.00972 — the deployed threshold
+    "keras_vs_augmented_labels": {
+      "tp_events": 3,
+      "fp_events": 3,
+      "fn_events": 0,
+      "precision": 0.5,
+      "recall": 1.0,
+      "f1": 0.6667
     },
-    "input_quantisation": {
-        "scale": float(interp_int8_v2.get_input_details()[0]['quantization'][0]),
-        "zero_point": int(interp_int8_v2.get_input_details()[0]['quantization'][1]),
-        "representable_range": [
-            float((-128 - interp_int8_v2.get_input_details()[0]['quantization'][1]) *
-                  interp_int8_v2.get_input_details()[0]['quantization'][0]),
-            float((127 - interp_int8_v2.get_input_details()[0]['quantization'][1]) *
-                  interp_int8_v2.get_input_details()[0]['quantization'][0]),
-        ],
+    "int8_vs_augmented_labels": {
+      "tp_events": 3,
+      "fp_events": 5,
+      "fn_events": 0,
+      "precision": 0.375,
+      "recall": 1.0,
+      "f1": 0.5455
     },
-    "output_quantisation": {
-        "scale": float(interp_int8_v2.get_output_details()[0]['quantization'][0]),
-        "zero_point": int(interp_int8_v2.get_output_details()[0]['quantization'][1]),
-    },
-    "evaluation": {
-        "metric": "event-level F1",
-        "test_period": [str(pp.DEFAULT_SPLIT.test_start), str(pp.DEFAULT_SPLIT.test_end)],
-        "keras":  {"precision": 0.25, "recall": 1.0, "f1": 0.40, "fp_events": 6, "fn_events": 0},
-        "int8":   {"precision": 0.20, "recall": 1.0, "f1": 0.333, "fp_events": 8, "fn_events": 0},
-    },
+    "augmented_labels_source": "data/processed/augmented_labels.json"
+  },
+  "decision_rule": {
+    "confidence_formula": "(error - threshold) / threshold",
+    "escalation_rule": "confidence > 0 -> escalate to Tier 2"
+  }
 }
-
-artefact_path = PROJECT_ROOT / "models" / "tier1_artefact.json"
-with open(artefact_path, "w") as f:
-    json.dump(tier1_artefact, f, indent=2)
-print(f"Saved Tier 1 artefact bundle to {artefact_path}")
